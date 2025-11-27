@@ -2,408 +2,232 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر الجزائر (DZ Shop) - المتوافق</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DZ Shop - English Sheets</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#10b981', dark: '#0f172a' },
+                    fontFamily: { cairo: ['Cairo', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        body { font-family: 'Cairo', sans-serif; background-color: #f7f7f9; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .btn-primary { @apply bg-emerald-600 text-white font-bold rounded-xl transition-all duration-300 hover:bg-emerald-700 active:scale-[0.98]; }
-        .animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-    
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react.dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body>
+<body class="text-slate-800 pb-20 md:pb-0">
 
-    <div id="root">
-        <div class="fixed inset-0 flex items-center justify-center bg-gray-50 z-[500]">
-            <div class="text-center">
-                <svg class="animate-spin h-12 w-12 text-emerald-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <p class="text-gray-600 text-lg font-semibold">جارٍ الاتصال بالمتجر...</p>
-            </div>
-        </div>
-    </div>
+    <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useCallback, useMemo } = React;
+        const { useState, useEffect } = React;
 
-        // 🚨 ضع رابط Google Apps Script الجديد هنا 🚨
-        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwiaw6p3DKnwiICFV8YeC_RVcs6b_OLvyL__mVfRu-7eQLJA1BBOWe1w8oI0Z75EW0/exec'; 
+        // 🚨🚨🚨 ضع رابط Apps Script الجديد هنا 🚨🚨🚨
+        const GAS_API_URL = 'YOUR_LINK_HERE'; 
 
-        // --- بيانات وهمية للطوارئ ---
+        // بيانات وهمية
         const MOCK_PRODUCTS = [
-            { id: 9001, name: "هاتف ذكي 5G", price: 125000, category: "إلكترونيات", images: ["https://placehold.co/400x400/10b981/ffffff?text=Phone"], rating: 4.8, reviews: 55, isNew: true, shortDesc: "شاشة AMOLED.", description: "هاتف قوي." }, 
-            { id: 9002, name: "ساعة ذكية", price: 15000, category: "إكسسوارات", images: ["https://placehold.co/400x400/ef4444/ffffff?text=Watch"], rating: 4.5, reviews: 80, isNew: false, shortDesc: "تتبع اللياقة.", description: "ساعة مقاومة للماء." }
+            { id: 1, name: "منتج تجريبي 1", price: 1000, category: "عام", images: ["https://placehold.co/400"], description: "وصف تجريبي" },
+            { id: 2, name: "منتج تجريبي 2", price: 2000, category: "عام", images: ["https://placehold.co/400"], description: "وصف تجريبي" }
         ];
 
-        // === الأيقونات ===
-        const Icon = ({ icon, size = 24, className = "" }) => {
+        const WILAYAS = ["16 - الجزائر", "31 - وهران", "25 - قسنطينة", "30 - ورقلة", "09 - البليدة", "19 - سطيف"];
+
+        const Icon = ({ name, size = 24 }) => {
             const icons = {
-                ShoppingCart: <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6zM3 6h18M6 10h12" />,
-                X: <path d="M18 6L6 18M6 6l12 12" />,
-                Search: <path d="M11 17a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM15 15l4 4" />,
-                CheckCircle: <path d="M22 11.08V12a10 10 0 1 1-5.05-8.83M13 3v8h8" />,
-                Star: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />,
-                ArrowRight: <path d="M5 12h14M12 5l7 7-7 7" />,
+                Home: <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />,
+                Cart: <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6zM3 6h18M16 10a4 4 0 0 0-8 0" />,
+                Back: <path d="M9 18l6-6-6-6" />,
                 Plus: <path d="M12 5v14M5 12h14" />,
-                Minus: <path d="M5 12h14" />,
-                Trash2: <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" />,
-                Loader2: <path d="M21 12a9 9 0 1 1-6.219-8.56" />,
+                Check: <path d="M20 6L9 17l-5-5" />
             };
-            const path = icons[icon];
-            return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{path || <circle cx="12" cy="12" r="10"/>}</svg>;
-        };
-
-        const WILAYAS = ["01 - أدرار", "16 - الجزائر", "31 - وهران", "25 - قسنطينة", "30 - ورقلة"].sort();
-        const PRODUCT_CATEGORIES = ['كل الفئات', 'إلكترونيات', 'ملابس', 'إكسسوارات', 'عناية شخصية', 'منزل ومطبخ'];
-
-        const showNotification = (message, type = 'green') => {
-            const box = document.getElementById('message-box');
-            if (!box) return;
-            const color = type === 'red' ? 'bg-red-600' : type === 'yellow' ? 'bg-yellow-600' : 'bg-green-600';
-            box.innerHTML = `<div class="text-white p-3 rounded-xl fixed bottom-5 left-1/2 -translate-x-1/2 shadow-xl z-[300] font-bold text-sm ${color}">${message}</div>`;
-            setTimeout(() => box.innerHTML = '', 4000);
+            return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{icons[name]}</svg>;
         };
 
         const App = () => {
             const [products, setProducts] = useState([]);
-            const [orders, setOrders] = useState([]);
-            const [view, setView] = useState('home');
             const [cart, setCart] = useState([]);
-            const [isCartOpen, setIsCartOpen] = useState(false);
+            const [view, setView] = useState('home');
             const [selectedProduct, setSelectedProduct] = useState(null);
-            const [isLoading, setIsLoading] = useState(true);
-            const [searchTerm, setSearchTerm] = useState('');
-            const [filterCategory, setFilterCategory] = useState('كل الفئات');
-            const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-            const [adminPass, setAdminPass] = useState('');
-            const [adminTab, setAdminTab] = useState('dashboard');
-            const [newProduct, setNewProduct] = useState({ name: '', price: '', category: 'إلكترونيات', images: '', shortDesc: '', description: '' });
-            const [formData, setFormData] = useState({ fullName: '', phone: '', wilaya: WILAYAS[0] || '', commune: '', address: '' });
+            const [loading, setLoading] = useState(true);
+            const [formData, setFormData] = useState({ name: '', phone: '', wilaya: WILAYAS[0], address: '' });
 
-            // دالة الاتصال (تم تعديلها لتقبل الأسماء العربية)
-            const fetchData = useCallback(async (sheetName) => {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
-                try {
-                    const response = await fetch(`${GAS_API_URL}?sheet=${sheetName}`, { signal: controller.signal });
-                    clearTimeout(timeoutId);
-                    if (!response.ok) throw new Error("HTTP Error");
-                    return await response.json();
-                } catch (error) { throw error; }
+            useEffect(() => {
+                const fetchData = async () => {
+                    if (!GAS_API_URL || GAS_API_URL.includes('YOUR_LINK')) {
+                        setProducts(MOCK_PRODUCTS); setLoading(false); return;
+                    }
+                    try {
+                        // 👇👇👇 هنا التغيير: طلب ورقة Products بدلاً من المنتجات 👇👇👇
+                        const res = await fetch(`${GAS_API_URL}?sheet=Products`);
+                        const data = await res.json();
+                        setProducts(data.map(p => ({
+                            ...p, id: Number(p.id), price: Number(p.price), 
+                            images: p.images ? p.images.split('|') : ["https://placehold.co/400"]
+                        })));
+                    } catch (e) { setProducts(MOCK_PRODUCTS); } 
+                    finally { setLoading(false); }
+                };
+                fetchData();
             }, []);
 
-            const sendData = async (action, data) => {
-                setIsLoading(true);
-                try {
-                    const response = await fetch(GAS_API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // استخدام text/plain لتجنب مشاكل CORS في GAS
-                        body: JSON.stringify({ action, data }),
-                    });
-                    const result = await response.json();
-                    if (!result.success) throw new Error(result.error || 'فشل');
-                    return result;
-                } catch (error) {
-                    showNotification(`خطأ: ${error.message}`, 'red');
-                    return { success: false };
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-
-            // --- تحميل البيانات (تم تعديل أسماء الأوراق للعربية) ---
-            const loadInitialData = useCallback(async () => {
-                setIsLoading(true);
-                try {
-                    // طلب الأوراق بالأسماء العربية كما في كود GAS
-                    const [fetchedProducts, fetchedOrders] = await Promise.all([
-                        fetchData('المنتجات'),
-                        fetchData('الطلبات')
-                    ]);
-
-                    setProducts(fetchedProducts.map(p => ({
-                        ...p, 
-                        id: Number(p.id),
-                        price: Number(p.price),
-                        rating: Number(p.rating || 5.0),
-                        reviews: Number(p.reviews || 0),
-                        images: (p.images && typeof p.images === 'string') ? p.images.split('|') : ["https://placehold.co/400x400/f3f4f6/a3a3a3?text=DZ"],
-                        isNew: String(p.isNew).toLowerCase() === 'true',
-                    })));
-                    
-                    setOrders(fetchedOrders.map(o => {
-                        // تحويل JSON Strings إلى Objects
-                        let items = [], customer = {};
-                        try { items = JSON.parse(o.itemsJson || '[]'); } catch (e) {}
-                        try { customer = JSON.parse(o.customerJson || '{}'); } catch (e) {}
-                        return { ...o, id: Number(o.id), total: Number(o.total), items, customer };
-                    }));
-                    showNotification('تم الاتصال بنجاح', 'green');
-
-                } catch (error) {
-                    console.warn("فشل الاتصال:", error);
-                    setProducts(MOCK_PRODUCTS);
-                    showNotification('وضع العرض التجريبي (فشل الاتصال)', 'yellow');
-                } finally {
-                    setIsLoading(false);
-                }
-            }, [fetchData]);
-
-            useEffect(() => { loadInitialData(); }, [loadInitialData]);
-
-            // --- العمليات (تم تعديل أسماء Actions لتطابق GAS) ---
-            const addProduct = async () => {
-                const productData = { ...newProduct, price: Number(newProduct.price), images: newProduct.images.split('|'), id: Date.now() };
-                const result = await sendData('ADD_PRODUCT', productData); // تم التعديل لـ ADD_PRODUCT
-                if (result.success) {
-                    setProducts(prev => [...prev, { ...productData, rating: 5, reviews: 0, isNew: true }]);
-                    setNewProduct({ name: '', price: '', category: 'إلكترونيات', images: '', shortDesc: '', description: '' });
-                    showNotification('تمت الإضافة', 'green');
-                }
-            };
-
-            const deleteProduct = async (id) => {
-                if (!confirm("حذف المنتج؟")) return;
-                const result = await sendData('DELETE_PRODUCT', { id }); // تم التعديل لـ DELETE_PRODUCT
-                if (result.success) {
-                    setProducts(prev => prev.filter(p => p.id !== id));
-                    showNotification('تم الحذف', 'green');
-                }
-            };
-
-            const updateOrderStatus = async (id, status) => {
-                const result = await sendData('UPDATE_ORDER_STATUS', { id, status }); // تم التعديل لـ UPDATE_ORDER_STATUS
-                if (result.success) {
-                    setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
-                    showNotification('تم التحديث', 'green');
-                }
+            const addToCart = (p) => {
+                setCart(prev => {
+                    const exist = prev.find(i => i.id === p.id);
+                    return exist ? prev.map(i => i.id === p.id ? {...i, qty: i.qty+1} : i) : [...prev, {...p, qty: 1}];
+                });
+                alert("تمت الإضافة");
             };
 
             const placeOrder = async (e) => {
                 e.preventDefault();
-                if (cart.length === 0) return;
+                setLoading(true);
                 
-                const total = cart.reduce((a,c) => a + (c.price*c.qty),0) + 400; // تكلفة شحن ثابتة للتجربة
-                const itemsToSend = cart.map(item => ({ id: item.id, name: item.name, qty: item.qty, price: item.price }));
-                
-                // تجهيز البيانات لتطابق أعمدة Google Sheets (itemsJson, customerJson)
+                // تجهيز البيانات للإرسال
                 const orderData = {
-                    id: Date.now(),
-                    date: new Date().toLocaleDateString('ar-DZ'),
-                    total: total,
-                    status: 'pending',
-                    itemsJson: JSON.stringify(itemsToSend), // تحويل لـ JSON String
-                    customerJson: JSON.stringify(formData)  // تحويل لـ JSON String
+                    action: 'ADD_ORDER',
+                    data: {
+                        id: Date.now(),
+                        date: new Date().toLocaleDateString(),
+                        total: cart.reduce((a,c)=>a+c.price*c.qty,0),
+                        status: 'pending',
+                        // هذه الحقول تتطلب وجود الأعمدة customerJson و itemsJson في الشيت
+                        customerJson: JSON.stringify(formData),
+                        itemsJson: JSON.stringify(cart.map(i=>({id:i.id, name:i.name, qty:i.qty})))
+                    }
                 };
-                
-                const result = await sendData('ADD_ORDER', orderData); // تم التعديل لـ ADD_ORDER
 
-                if (result.success) {
-                    setOrders(prev => [{...orderData, items: itemsToSend, customer: formData}, ...prev]);
+                try {
+                    await fetch(GAS_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify(orderData)
+                    });
                     setCart([]);
                     setView('success');
-                }
+                } catch (error) { alert("فشل الاتصال"); } 
+                finally { setLoading(false); }
             };
 
-            // --- دوال السلة والعرض ---
-            const updateCartQuantity = (id, change) => setCart(prev => prev.map(item => item.id === id ? { ...item, qty: item.qty + change } : item).filter(item => item.qty > 0));
-            const addToCart = (product) => {
-                setCart(prev => {
-                    const existing = prev.find(item => item.id === product.id);
-                    return existing ? prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item) : [...prev, { ...product, qty: 1 }];
-                });
-                setIsCartOpen(true);
-            };
+            // --- المكونات ---
+            const ProductCard = ({ p }) => (
+                <div onClick={() => { setSelectedProduct(p); setView('product'); }} className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 cursor-pointer">
+                    <img src={p.images[0]} className="w-full h-40 object-cover rounded-xl mb-3 bg-gray-100" />
+                    <h3 className="font-bold text-sm truncate">{p.name}</h3>
+                    <div className="flex justify-between items-center mt-2">
+                        <span className="text-primary font-bold">{p.price.toLocaleString()} د.ج</span>
+                        <button onClick={(e) => { e.stopPropagation(); addToCart(p); }} className="bg-dark text-white p-1.5 rounded-lg"><Icon name="Plus" size={16}/></button>
+                    </div>
+                </div>
+            );
 
-            const filteredProducts = useMemo(() => products.filter(p => (filterCategory === 'كل الفئات' || p.category === filterCategory) && p.name.toLowerCase().includes(searchTerm.toLowerCase())), [products, searchTerm, filterCategory]);
+            const ProductDetail = () => (
+                <div className="fade-in pb-20 p-4">
+                    <button onClick={() => setView('home')} className="mb-4 flex gap-2 text-gray-500"><Icon name="Back" /> رجوع</button>
+                    <img src={selectedProduct.images[0]} className="w-full h-72 object-contain bg-white rounded-3xl mb-4 border" />
+                    <h1 className="text-2xl font-black">{selectedProduct.name}</h1>
+                    <p className="text-gray-500 my-4">{selectedProduct.description || "لا يوجد وصف"}</p>
+                    <div className="flex justify-between items-center border-t pt-4 mb-6">
+                        <span className="text-gray-400">السعر</span>
+                        <span className="text-3xl font-black text-primary">{selectedProduct.price.toLocaleString()} د.ج</span>
+                    </div>
+                    <div className="flex gap-3">
+                        <button onClick={() => addToCart(selectedProduct)} className="flex-1 bg-gray-100 py-3 rounded-xl font-bold">إضافة للسلة</button>
+                        <button onClick={() => { addToCart(selectedProduct); setView('checkout'); }} className="flex-1 bg-primary text-white py-3 rounded-xl font-bold">شراء الآن</button>
+                    </div>
+                </div>
+            );
 
-            // --- الواجهة ---
-            const LoadingOverlay = () => <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[200] flex items-center justify-center"><div className="flex items-center gap-3 bg-gray-900 text-white p-4 rounded-full"><Icon icon="Loader2" className="animate-spin" /><span className="font-bold">جارٍ المعالجة...</span></div></div>;
+            const Checkout = () => (
+                <div className="fade-in p-4 max-w-lg mx-auto">
+                    <button onClick={() => setView('cart')} className="mb-4 flex gap-2 text-gray-500"><Icon name="Back" /> رجوع</button>
+                    <div className="bg-white p-6 rounded-3xl shadow-lg border">
+                        <h2 className="text-2xl font-black mb-6">معلومات التوصيل</h2>
+                        <form onSubmit={placeOrder} className="space-y-4">
+                            <input required placeholder="الاسم" className="w-full bg-gray-50 border p-3 rounded-xl" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                            <input required placeholder="الهاتف" className="w-full bg-gray-50 border p-3 rounded-xl" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+                            <select className="w-full bg-gray-50 border p-3 rounded-xl" value={formData.wilaya} onChange={e => setFormData({...formData, wilaya: e.target.value})}>
+                                {WILAYAS.map(w => <option key={w} value={w}>{w}</option>)}
+                            </select>
+                            <input required placeholder="العنوان" className="w-full bg-gray-50 border p-3 rounded-xl" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+                            <div className="pt-4 border-t mt-4">
+                                <div className="flex justify-between font-bold text-lg mb-4">
+                                    <span>الإجمالي:</span>
+                                    <span className="text-primary">{cart.reduce((a,c)=>a+c.price*c.qty,0).toLocaleString()} د.ج</span>
+                                </div>
+                                <button disabled={loading} className="w-full bg-dark text-white py-4 rounded-xl font-bold shadow-lg">
+                                    {loading ? 'جاري الإرسال...' : 'تأكيد الطلب'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+
+            if (loading && products.length === 0) return <div className="h-screen flex items-center justify-center font-bold">جاري التحميل...</div>;
 
             return (
-                <div className="min-h-screen text-gray-800 font-sans" dir="rtl">
-                    {isLoading && <LoadingOverlay />}
-                    <div id="message-box"></div>
-                    
-                    {/* Navbar */}
-                    <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100 p-4 flex justify-between items-center">
-                        <div className="font-black text-xl cursor-pointer" onClick={() => setView('home')}>DZ Shop</div>
-                        {view.includes('admin') ? <span className="bg-black text-white px-2 rounded text-xs">Admin</span> : 
-                        <button onClick={() => setIsCartOpen(true)} className="relative p-2"><Icon icon="ShoppingCart" />{cart.length > 0 && <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">{cart.reduce((a,c)=>a+c.qty,0)}</span>}</button>}
-                    </nav>
-
-                    {/* Home */}
+                <div className="min-h-screen bg-[#f8fafc]">
                     {view === 'home' && (
-                        <main className="container mx-auto px-4 py-6 animate-fade-in">
-                            <div className="flex gap-2 mb-6">
-                                <input type="text" placeholder="بحث..." className="flex-1 border p-2 rounded-xl" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                                <select className="border p-2 rounded-xl" value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>{PRODUCT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select>
+                        <>
+                            <div className="sticky top-0 z-40 bg-white/90 backdrop-blur px-4 py-3 flex justify-between items-center shadow-sm">
+                                <h1 className="font-black text-xl text-dark">DZ Shop</h1>
+                                <button onClick={() => setView('cart')} className="relative p-2 bg-gray-100 rounded-full">
+                                    <Icon name="Cart" />
+                                    {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">{cart.length}</span>}
+                                </button>
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {filteredProducts.map(p => (
-                                    <div key={p.id} className="bg-white p-3 rounded-2xl shadow hover:shadow-lg cursor-pointer" onClick={() => {setSelectedProduct(p); setView('product-detail');}}>
-                                        <img src={p.images[0]} className="w-full aspect-square object-cover rounded-xl mb-2 bg-gray-100" onError={e => e.target.src="https://placehold.co/200"}/>
-                                        <h3 className="font-bold truncate">{p.name}</h3>
-                                        <div className="flex justify-between items-center mt-1">
-                                            <span className="text-emerald-600 font-bold">{p.price} د.ج</span>
-                                            <button onClick={(e) => {e.stopPropagation(); addToCart(p);}} className="bg-emerald-50 text-emerald-600 p-2 rounded-full"><Icon icon="Plus" size={16}/></button>
-                                        </div>
-                                    </div>
-                                ))}
+                            <div className="container mx-auto max-w-4xl p-4 grid grid-cols-2 md:grid-cols-3 gap-4 fade-in">
+                                {products.map(p => <ProductCard key={p.id} p={p} />)}
                             </div>
-                        </main>
+                        </>
                     )}
 
-                    {/* Product Detail */}
-                    {view === 'product-detail' && selectedProduct && (
-                        <div className="container mx-auto px-4 py-8 animate-fade-in">
-                            <button onClick={() => setView('home')} className="mb-4 flex items-center gap-2 text-gray-500">رجوع</button>
-                            <div className="bg-white p-6 rounded-3xl shadow grid md:grid-cols-2 gap-8">
-                                <img src={selectedProduct.images[0]} className="w-full rounded-2xl bg-gray-100" onError={e => e.target.src="https://placehold.co/400"}/>
-                                <div>
-                                    <h1 className="text-2xl font-black mb-2">{selectedProduct.name}</h1>
-                                    <p className="text-gray-600 mb-6">{selectedProduct.description}</p>
-                                    <div className="flex justify-between items-center border-t pt-4">
-                                        <span className="text-3xl font-black text-emerald-600">{selectedProduct.price} د.ج</span>
-                                        <button onClick={() => addToCart(selectedProduct)} className="px-8 py-3 btn-primary">إضافة للسلة</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {view === 'product' && selectedProduct && <ProductDetail />}
 
-                    {/* Checkout */}
-                    {view === 'checkout' && (
-                        <div className="container mx-auto px-4 py-8 max-w-lg animate-fade-in">
-                            <button onClick={() => setView('home')} className="mb-4 text-gray-500">رجوع</button>
-                            <div className="bg-white p-6 rounded-2xl shadow">
-                                <h2 className="text-2xl font-bold mb-4">إتمام الطلب</h2>
-                                <div className="mb-4 bg-gray-50 p-3 rounded">الإجمالي: <span className="font-bold text-emerald-600">{(cart.reduce((a,c)=>a+(c.price*c.qty),0)+400).toLocaleString()} د.ج</span></div>
-                                <form onSubmit={placeOrder} className="space-y-3">
-                                    <input required placeholder="الاسم" className="w-full border p-3 rounded-xl" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} />
-                                    <input required placeholder="الهاتف" className="w-full border p-3 rounded-xl" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-                                    <select className="w-full border p-3 rounded-xl" value={formData.wilaya} onChange={e => setFormData({...formData, wilaya: e.target.value})}>{WILAYAS.map(w => <option key={w} value={w}>{w}</option>)}</select>
-                                    <input required placeholder="العنوان" className="w-full border p-3 rounded-xl" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
-                                    <button className="w-full py-3 btn-primary mt-2">تأكيد الطلب</button>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Success */}
-                    {view === 'success' && (
-                        <div className="h-[60vh] flex flex-col items-center justify-center text-center animate-fade-in">
-                            <div className="text-green-500 mb-4"><Icon icon="CheckCircle" size={60}/></div>
-                            <h2 className="text-2xl font-bold">تم الطلب بنجاح!</h2>
-                            <button onClick={() => setView('home')} className="mt-6 px-6 py-2 btn-primary">العودة</button>
-                        </div>
-                    )}
-
-                    {/* Admin Login */}
-                    {view === 'admin-login' && (
-                        <div className="h-screen flex items-center justify-center">
-                            <form onSubmit={(e) => {e.preventDefault(); if(adminPass==='1234'){setIsAdminAuthenticated(true); setView('admin-dashboard');} else alert('خطأ');}} className="bg-white p-8 rounded-xl shadow w-80">
-                                <h2 className="text-xl font-bold mb-4 text-center">Admin</h2>
-                                <input type="password" placeholder="Password" className="w-full border p-2 rounded mb-4" value={adminPass} onChange={e => setAdminPass(e.target.value)}/>
-                                <button className="w-full btn-primary py-2">Login</button>
-                                <button type="button" onClick={() => setView('home')} className="w-full mt-2 text-sm text-gray-500">Back</button>
-                            </form>
-                        </div>
-                    )}
-
-                    {/* Admin Dashboard */}
-                    {view === 'admin-dashboard' && (
-                        <div className="container mx-auto p-4 animate-fade-in">
-                            <div className="flex justify-between mb-6">
-                                <h2 className="text-2xl font-bold">لوحة التحكم</h2>
-                                <div className="flex gap-2">
-                                    <button onClick={() => setAdminTab('products')} className={`px-4 py-2 rounded ${adminTab==='products'?'bg-emerald-600 text-white':'bg-gray-200'}`}>المنتجات</button>
-                                    <button onClick={() => setAdminTab('orders')} className={`px-4 py-2 rounded ${adminTab==='orders'?'bg-emerald-600 text-white':'bg-gray-200'}`}>الطلبات</button>
-                                    <button onClick={() => setView('home')} className="text-red-500 px-4">خروج</button>
-                                </div>
-                            </div>
-
-                            {adminTab === 'products' && (
-                                <div>
-                                    <div className="bg-white p-4 rounded-xl shadow mb-6">
-                                        <h3 className="font-bold mb-2">إضافة منتج</h3>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <input placeholder="الاسم" className="border p-2 rounded" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
-                                            <input placeholder="السعر" type="number" className="border p-2 rounded" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
-                                            <input placeholder="رابط الصورة" className="border p-2 rounded" value={newProduct.images} onChange={e => setNewProduct({...newProduct, images: e.target.value})} />
-                                            <button onClick={addProduct} className="btn-primary py-2">إضافة</button>
-                                        </div>
-                                    </div>
-                                    <div className="bg-white rounded-xl shadow overflow-hidden">
-                                        {products.map(p => (
-                                            <div key={p.id} className="flex justify-between p-4 border-b">
-                                                <span>{p.name}</span>
-                                                <button onClick={() => deleteProduct(p.id)} className="text-red-500"><Icon icon="Trash2"/></button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {adminTab === 'orders' && (
-                                <div className="space-y-4">
-                                    {orders.map(o => (
-                                        <div key={o.id} className="bg-white p-4 rounded-xl shadow">
-                                            <div className="flex justify-between mb-2">
-                                                <span className="font-bold">#{o.id} - {o.customer.fullName}</span>
-                                                <select value={o.status} onChange={(e) => updateOrderStatus(o.id, e.target.value)} className="border rounded p-1 text-sm">
-                                                    <option value="pending">انتظار</option>
-                                                    <option value="shipped">شحن</option>
-                                                    <option value="delivered">تسليم</option>
-                                                </select>
-                                            </div>
-                                            <div className="text-sm text-gray-500">
-                                                {o.items.map((i, idx) => <span key={idx} className="ml-2">{i.qty}x {i.name}</span>)}
-                                            </div>
-                                            <div className="font-bold text-emerald-600 mt-2">{o.total} د.ج</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Cart Sidebar */}
-                    {isCartOpen && (
-                        <div className="fixed inset-0 z-[100] flex justify-end">
-                            <div className="absolute inset-0 bg-black/40" onClick={() => setIsCartOpen(false)}></div>
-                            <div className="relative bg-white w-full max-w-md h-full p-6 flex flex-col animate-fade-in">
-                                <div className="flex justify-between mb-4"><h2 className="text-xl font-bold">السلة</h2><button onClick={() => setIsCartOpen(false)}>X</button></div>
-                                <div className="flex-1 overflow-y-auto">
+                    {view === 'cart' && (
+                        <div className="p-4 fade-in container mx-auto max-w-4xl">
+                            <button onClick={() => setView('home')} className="mb-4 flex gap-2 text-gray-500"><Icon name="Back" /> تسوق المزيد</button>
+                            <h2 className="text-2xl font-black mb-4">السلة</h2>
+                            {cart.length === 0 ? <p className="text-center text-gray-400 py-10">السلة فارغة</p> : (
+                                <div className="space-y-3">
                                     {cart.map(item => (
-                                        <div key={item.id} className="flex justify-between items-center border-b py-2">
-                                            <div><div className="font-bold">{item.name}</div><div className="text-emerald-600">{item.price} د.ج</div></div>
-                                            <div className="flex items-center gap-2 bg-gray-100 rounded-full p-1">
-                                                <button onClick={() => updateCartQuantity(item.id, 1)} className="p-1 bg-white rounded-full">+</button>
-                                                <span>{item.qty}</span>
-                                                <button onClick={() => updateCartQuantity(item.id, -1)} className="p-1 bg-white rounded-full">-</button>
+                                        <div key={item.id} className="bg-white p-3 rounded-xl flex gap-3 items-center shadow-sm">
+                                            <img src={item.images[0]} className="w-16 h-16 rounded-lg bg-gray-100 object-cover" />
+                                            <div className="flex-1">
+                                                <h3 className="font-bold">{item.name}</h3>
+                                                <p className="text-primary font-bold">{item.price.toLocaleString()} د.ج</p>
                                             </div>
+                                            <span className="font-bold bg-gray-100 px-3 py-1 rounded-lg">x{item.qty}</span>
                                         </div>
                                     ))}
+                                    <button onClick={() => setView('checkout')} className="w-full bg-primary text-white py-3 rounded-xl font-bold mt-4 shadow-lg">متابعة للدفع</button>
                                 </div>
-                                {cart.length > 0 && <button onClick={() => {setIsCartOpen(false); setView('checkout')}} className="btn-primary py-3 mt-4">شراء</button>}
-                            </div>
+                            )}
                         </div>
                     )}
 
-                    <footer className="mt-10 py-6 text-center text-gray-400 text-sm border-t">
-                        <p>© 2024 DZ Shop. <span className="cursor-pointer hover:text-emerald-600" onClick={() => setView('admin-login')}>Admin</span></p>
-                    </footer>
+                    {view === 'checkout' && <Checkout />}
+
+                    {view === 'success' && (
+                        <div className="h-screen flex flex-col items-center justify-center text-center p-6 fade-in">
+                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6"><Icon name="Check" size={40} /></div>
+                            <h2 className="text-3xl font-black mb-2">تم الطلب!</h2>
+                            <button onClick={() => setView('home')} className="bg-dark text-white px-8 py-3 rounded-xl font-bold">العودة</button>
+                        </div>
+                    )}
                 </div>
             );
         };
