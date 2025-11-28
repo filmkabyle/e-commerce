@@ -42,7 +42,6 @@
 
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycby_Ayn1hmMYRprQNCv03ZDNFcfUGbWkDrfKRdWkxfjnt8Wi8Pb1gZOVw9D97aZqVC-P/exec'; 
 
-        // ✅ قاعدة بيانات كاملة وشاملة لجميع البلديات (1541 بلدية) موزعة على 58 ولاية
         const ALGERIA_DATA = {
             "01 - أدرار": ["أدرار", "تامست", "شرواين", "رقان", "إينزجمير", "تيط", "قصر قدور", "تسابيت", "أقبلي", "أولاد أحمد تيمي", "بودة", "أوقروت", "دلدول", "فنوغيل", "زاوية كنتة", "سالي"],
             "02 - الشلف": ["الشلف", "تنس", "بنان", "الصبحة", "الكريمية", "الهرانفة", "تاوقريت", "بني حواء", "سوبحة", "سيدي عكاشة", "الظهرة", "سنجاس", "الزبانة", "أولاد بن عبد القادر", "أولاد فارس", "بوقادير", "بني راشد", "تلعصة", "المرسى", "الشطية", "سيدي عبد الرحمن", "مصدق", "الحجاج", "خشنة", "موسى", "عين مران", "البيض", "بريرة", "وادي سلي", "حرشون", "وادى الفضة", "أولاد عباس", "سيدي بوزين", "بني بوعتاب", "أم الدروع"],
@@ -107,8 +106,6 @@
         const CATEGORIES = ['الكل', 'هواتف', 'لابتوب', 'ساعات', 'إكسسوارات', 'ملابس', 'منزل'];
         const WILAYAS_LIST = Object.keys(ALGERIA_DATA);
 
-        // ... (باقي الكود والمكونات كما هي) ...
-
         const Icon = ({ name, size = 24, className = "", filled = false }) => {
             const icons = {
                 Home: <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />,
@@ -144,6 +141,8 @@
             const [search, setSearch] = useState('');
             const [category, setCategory] = useState('الكل');
             
+            const [qty, setQty] = useState(1);
+            
             const [formData, setFormData] = useState({ name: '', phone: '', wilaya: WILAYAS_LIST[0], commune: '', address: '' });
             const [availableCommunes, setAvailableCommunes] = useState(ALGERIA_DATA[WILAYAS_LIST[0]]);
 
@@ -162,16 +161,26 @@
                 fetchData();
             }, []);
 
+            useEffect(() => {
+                if (view === 'product') {
+                    setQty(1);
+                }
+            }, [view, selectedProduct]);
+
             const handleWilayaChange = (e) => {
                 const selectedWilaya = e.target.value;
                 setFormData({ ...formData, wilaya: selectedWilaya, commune: '' });
                 setAvailableCommunes(ALGERIA_DATA[selectedWilaya] || []);
             };
 
-            const addToCart = (p) => setCart(prev => {
+            const addToCart = (p, quantity = 1) => setCart(prev => {
                 const exists = prev.find(i => i.id === p.id);
-                return exists ? prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i) : [...prev, { ...p, qty: 1 }];
+                return exists ? prev.map(i => i.id === p.id ? { ...i, qty: i.qty + quantity } : i) : [...prev, { ...p, qty: quantity }];
             });
+
+            const removeFromCart = (id) => {
+                setCart(prev => prev.filter(item => item.id !== id));
+            };
 
             const placeOrder = async (e) => {
                 e.preventDefault();
@@ -230,7 +239,7 @@
                                         <div key={p.id} className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 hover:shadow-xl transition-all cursor-pointer" onClick={() => {setSelectedProduct(p); setView('product');}}>
                                             <img src={p.images[0]} className="w-full aspect-square object-cover rounded-xl mb-3 bg-gray-100" onError={(e)=>e.target.src="https://placehold.co/400"} />
                                             <h3 className="font-bold text-sm truncate mb-1">{p.name}</h3>
-                                            <div className="flex justify-between items-end"><p className="text-primary font-black">{p.price.toLocaleString()} د.ج</p><button onClick={(e) => {e.stopPropagation(); addToCart(p);}} className="bg-dark text-white p-2 rounded-xl"><Icon name="Plus" size={16} /></button></div>
+                                            <div className="flex justify-between items-end"><p className="text-primary font-black">{p.price.toLocaleString()} د.ج</p><button onClick={(e) => {e.stopPropagation(); addToCart(p, 1);}} className="bg-dark text-white p-2 rounded-xl"><Icon name="Plus" size={16} /></button></div>
                                         </div>
                                     ))}
                                 </div>
@@ -242,9 +251,29 @@
                                 <button onClick={() => setView('home')} className="mb-4 flex items-center gap-2 text-gray-500 font-bold"><Icon name="ChevronRight" /> رجوع</button>
                                 <div className="bg-white rounded-3xl shadow-xl overflow-hidden p-4">
                                     <img src={selectedProduct.images[0]} className="w-full h-64 object-contain mb-4" onError={(e)=>e.target.src="https://placehold.co/400"} />
-                                    <h1 className="text-2xl font-black mb-2">{selectedProduct.name}</h1>
-                                    <p className="text-gray-500 mb-6">{selectedProduct.description || "لا يوجد وصف."}</p>
-                                    <div className="flex gap-3"><button onClick={() => addToCart(selectedProduct)} className="flex-1 bg-gray-100 py-3 rounded-xl font-bold">إضافة للسلة</button><button onClick={() => {addToCart(selectedProduct); setView('checkout')}} className="flex-1 bg-dark text-white py-3 rounded-xl font-bold">شراء الآن</button></div>
+                                    
+                                    <h1 className="text-2xl font-black mb-2 text-gray-800 leading-tight">{selectedProduct.name}</h1>
+                                    
+                                    {/* اختيار الكمية أسفل العنوان مباشرة */}
+                                    <div className="flex items-center justify-between bg-gray-50 p-3 rounded-2xl mb-6 border border-gray-100 mt-2">
+                                        <div className="flex flex-col">
+                                            <span className="text-xs text-gray-400 font-bold mb-1">الكمية</span>
+                                            <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-200">
+                                                <button onClick={() => setQty(q => Math.max(1, q - 1))} className="w-9 h-9 flex items-center justify-center font-bold text-xl text-primary hover:bg-gray-50 rounded-r-xl">-</button>
+                                                <span className="w-8 text-center font-black text-lg">{qty}</span>
+                                                <button onClick={() => setQty(q => q + 1)} className="w-9 h-9 flex items-center justify-center font-bold text-xl text-primary hover:bg-gray-50 rounded-l-xl">+</button>
+                                            </div>
+                                        </div>
+                                        <div className="text-left">
+                                            <span className="text-xs text-gray-400 font-bold block mb-1">الإجمالي</span>
+                                            <p className="text-primary font-black text-xl">{(selectedProduct.price * qty).toLocaleString()}<span className="text-xs text-gray-500 mr-1">د.ج</span></p>
+                                        </div>
+                                    </div>
+
+                                    <h3 className="font-bold text-gray-800 mb-1">الوصف</h3>
+                                    <p className="text-gray-500 mb-6 text-sm leading-relaxed">{selectedProduct.description || "لا يوجد وصف."}</p>
+                                    
+                                    <div className="flex gap-3"><button onClick={() => addToCart(selectedProduct, qty)} className="flex-1 bg-gray-100 py-3 rounded-xl font-bold">إضافة للسلة</button><button onClick={() => {addToCart(selectedProduct, qty); setView('checkout')}} className="flex-1 bg-dark text-white py-3 rounded-xl font-bold">شراء الآن</button></div>
                                 </div>
                             </div>
                         )}
@@ -252,11 +281,16 @@
                         {view === 'cart' && (
                             <div className="animate-slide-up">
                                 <h2 className="text-2xl font-black mb-6">السلة</h2>
-                                {cart.map(item => (
+                                {cart.length === 0 ? <p className="text-center text-gray-500 my-10">السلة فارغة</p> : 
+                                cart.map(item => (
                                     <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm mb-3 flex gap-4 items-center">
                                         <img src={item.images[0]} className="w-16 h-16 rounded-xl object-cover" onError={(e)=>e.target.src="https://placehold.co/400"} />
                                         <div className="flex-1"><h3 className="font-bold">{item.name}</h3><p className="text-primary font-bold">{item.price} د.ج</p></div>
-                                        <div className="font-bold">x{item.qty}</div>
+                                        <div className="font-bold text-sm bg-gray-100 px-2 py-1 rounded-lg">x{item.qty}</div>
+                                        
+                                        <button onClick={() => removeFromCart(item.id)} className="text-red-500 bg-red-50 p-2 rounded-xl hover:bg-red-100 transition">
+                                            <Icon name="Trash" size={20} />
+                                        </button>
                                     </div>
                                 ))}
                                 {cart.length > 0 && <button onClick={() => setView('checkout')} className="w-full bg-dark text-white py-4 rounded-xl font-bold mt-4 shadow-lg">متابعة للدفع ({(cart.reduce((a,c)=>a+c.price*c.qty,0) + 500).toLocaleString()} د.ج)</button>}
