@@ -3,45 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DZ Shop - المتجر الجزائري</title>
+    <title>DZ Shop Pro - الذكي</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- إعدادات التصميم -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: '#10b981', dark: '#0f172a', surface: '#ffffff' },
-                    fontFamily: { cairo: ['Cairo', 'sans-serif'] },
-                    animation: { 'slide-up': 'slideUp 0.4s ease-out', 'fade-in': 'fadeIn 0.3s ease-in-out' },
+                    colors: {
+                        primary: '#059669', // Emerald 600
+                        dark: '#1e293b',    // Slate 800
+                        light: '#f8fafc',
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                    },
                     keyframes: {
-                        slideUp: { '0%': { transform: 'translateY(100%)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } }
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
                     }
                 }
             }
         }
     </script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
         body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+        /* تحسين النصوص الأجنبية */
+        .ltr-text { direction: ltr; text-align: left; font-family: system-ui, -apple-system, sans-serif; }
     </style>
+    
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="text-slate-800 pb-20 md:pb-0 selection:bg-primary selection:text-white">
+<body class="text-slate-800 pb-24 md:pb-0 selection:bg-primary selection:text-white">
 
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
         // 🚨 الرابط الخاص بك
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwx2WBI3uQK0fDEvISa6q7ZXw1UPQHUn3sBY8DVhiaTCJqHrDAv-wLlDWMpKPmTZmg8/exec'; 
 
-        // قائمة الولايات كاملة (58 ولاية)
+        // قائمة الولايات (58 ولاية)
         const WILAYAS = [
             "01 - أدرار", "02 - الشلف", "03 - الأغواط", "04 - أم البواقي", "05 - باتنة", "06 - بجاية", "07 - بسكرة", "08 - بشار", "09 - البليدة", "10 - البويرة",
             "11 - تمنراست", "12 - تبسة", "13 - تلمسان", "14 - تيارت", "15 - تيزي وزو", "16 - الجزائر", "17 - الجلفة", "18 - جيجل", "19 - سطيف", "20 - سعيدة",
@@ -53,23 +70,49 @@
 
         const CATEGORIES = ['الكل', 'هواتف', 'لابتوب', 'ساعات', 'إكسسوارات', 'ملابس', 'منزل'];
 
+        // --- دالة ذكية لكشف اللغة (عربي/أجنبي) ---
+        const getDir = (text) => {
+            if (!text) return 'rtl';
+            const arabicPattern = /[\u0600-\u06FF]/;
+            return arabicPattern.test(text) ? 'rtl' : 'ltr'; // إذا وجد حرف عربي يجعله يمين، وإلا يسار
+        };
+
+        // --- مكونات مساعدة ---
         const Icon = ({ name, size = 24, className = "", filled = false }) => {
             const icons = {
                 Home: <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />,
-                Grid: <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />,
                 Heart: <path fill={filled ? "currentColor" : "none"} d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />,
                 ShoppingBag: <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6zM3 6h18M16 10a4 4 0 0 0-8 0" />,
                 Search: <circle cx="11" cy="11" r="8" />,
                 ChevronRight: <path d="M9 18l6-6-6-6" />,
                 Star: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>,
                 Plus: <path d="M12 5v14M5 12h14" />,
-                Minus: <path d="M5 12h14" />,
                 Trash: <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />,
-                Check: <path d="M20 6L9 17l-5-5" />
+                Check: <path d="M20 6L9 17l-5-5" />,
+                Grid: <rect x="3" y="3" width="7" height="7"></rect>
             };
             return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{icons[name]}</svg>;
         };
 
+        // إشعار منبثق (Toast)
+        const Toast = ({ msg }) => (
+            <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-dark text-white px-6 py-3 rounded-full shadow-2xl z-[100] animate-slide-up flex items-center gap-2">
+                <Icon name="Check" size={18} className="text-primary" />
+                <span className="text-sm font-bold">{msg}</span>
+            </div>
+        );
+
+        // تحميل وهمي (Skeleton)
+        const SkeletonCard = () => (
+            <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 animate-pulse">
+                <div className="bg-gray-200 h-40 rounded-xl mb-3 w-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div className="flex justify-between"><div className="h-6 w-16 bg-gray-200 rounded"></div><div className="h-8 w-8 bg-gray-200 rounded-full"></div></div>
+            </div>
+        );
+
+        // --- التطبيق ---
         const App = () => {
             const [products, setProducts] = useState([]);
             const [loading, setLoading] = useState(true);
@@ -79,6 +122,7 @@
             const [selectedProduct, setSelectedProduct] = useState(null);
             const [search, setSearch] = useState('');
             const [category, setCategory] = useState('الكل');
+            const [toast, setToast] = useState(null);
             const [formData, setFormData] = useState({ name: '', phone: '', wilaya: WILAYAS[0], address: '' });
 
             useEffect(() => localStorage.setItem('dz_cart', JSON.stringify(cart)), [cart]);
@@ -88,19 +132,19 @@
             useEffect(() => {
                 const fetchData = async () => {
                     try {
-                        // إضافة timestamp لمنع التخزين المؤقت
                         const res = await fetch(`${GAS_API_URL}?sheet=Products&t=${Date.now()}`);
-                        if (!res.ok) throw new Error("فشل الاتصال");
+                        if (!res.ok) throw new Error();
                         const data = await res.json();
                         
-                        // تحويل البيانات مع معالجة الأخطاء المحتملة في الأسماء
                         const formattedData = data.map(p => ({
                             ...p,
                             id: Number(p.id),
                             price: Number(p.price),
+                            rating: Number(p.rating || 5),
+                            reviews: Number(p.reviews || 0),
                             images: (p.images && String(p.images).length > 5) ? String(p.images).split('|') : ["https://placehold.co/400?text=No+Image"],
                             isNew: String(p.isNew).toLowerCase() === 'true'
-                        })).filter(p => p.id); // التأكد من وجود ID
+                        })).filter(p => p.id);
                         
                         setProducts(formattedData);
                     } catch (error) {
@@ -112,22 +156,27 @@
                 fetchData();
             }, []);
 
+            const showToast = (msg) => {
+                setToast(msg);
+                setTimeout(() => setToast(null), 3000);
+            };
+
             const addToCart = (p) => {
                 setCart(prev => {
                     const exists = prev.find(i => i.id === p.id);
                     return exists ? prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i) : [...prev, { ...p, qty: 1 }];
                 });
+                showToast("تمت الإضافة للسلة");
+                if (navigator.vibrate) navigator.vibrate(50);
             };
 
             const updateQty = (id, delta) => setCart(prev => prev.map(item => item.id === id ? { ...item, qty: Math.max(1, item.qty + delta) } : item));
             const removeFromCart = (id) => setCart(prev => prev.filter(item => item.id !== id));
             const toggleWishlist = (p) => setWishlist(prev => prev.find(i => i.id === p.id) ? prev.filter(i => i.id !== p.id) : [...prev, p]);
 
-            // إرسال الطلب
             const placeOrder = async (e) => {
                 e.preventDefault();
                 setLoading(true);
-
                 const orderData = {
                     action: 'ADD_ORDER',
                     data: {
@@ -135,31 +184,16 @@
                         date: new Date().toLocaleDateString('en-GB'),
                         total: cart.reduce((a,c) => a + c.price * c.qty, 0) + 500,
                         status: 'pending',
-                        customerJson: JSON.stringify({
-                            name: formData.name,
-                            phone: formData.phone,
-                            wilaya: formData.wilaya,
-                            address: formData.address
-                        }),
+                        customerJson: JSON.stringify(formData),
                         itemsJson: JSON.stringify(cart.map(i => ({ id: i.id, name: i.name, qty: i.qty })))
                     }
                 };
-
                 try {
-                    await fetch(GAS_API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain' }, 
-                        body: JSON.stringify(orderData)
-                    });
-                    setCart([]);
-                    setView('success');
+                    await fetch(GAS_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(orderData) });
+                    setCart([]); setView('success');
                 } catch (error) {
-                    // في حالة Apps Script، أحياناً يعطي خطأ شبكة رغم النجاح
-                    setCart([]);
-                    setView('success');
-                } finally {
-                    setLoading(false);
-                }
+                    setCart([]); setView('success'); // افتراض النجاح لتجاوز خطأ الشبكة الوهمي
+                } finally { setLoading(false); }
             };
 
             const filteredProducts = products.filter(p => 
@@ -169,10 +203,10 @@
 
             // --- المكونات ---
             const BottomNav = () => (
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center md:hidden z-50 pb-safe">
+                <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-gray-200 px-6 py-2 flex justify-between items-center md:hidden z-50 pb-safe">
                     <button onClick={() => setView('home')} className={`flex flex-col items-center gap-1 ${view === 'home' ? 'text-primary' : 'text-gray-400'}`}><Icon name="Home" /><span className="text-[10px] font-bold">الرئيسية</span></button>
                     <button onClick={() => setView('wishlist')} className={`flex flex-col items-center gap-1 ${view === 'wishlist' ? 'text-primary' : 'text-gray-400'}`}><Icon name="Heart" filled={view === 'wishlist'} /><span className="text-[10px] font-bold">المفضلة</span></button>
-                    <div className="relative -top-5"><button onClick={() => setView('cart')} className="bg-primary text-white p-4 rounded-full shadow-lg shadow-emerald-200 hover:scale-105 transition-transform"><Icon name="ShoppingBag" />{cart.length > 0 && <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">{cart.reduce((a,c)=>a+c.qty,0)}</span>}</button></div>
+                    <div className="relative -top-6"><button onClick={() => setView('cart')} className="bg-primary text-white p-4 rounded-full shadow-lg shadow-emerald-200 hover:scale-105 transition-transform"><Icon name="ShoppingBag" />{cart.length > 0 && <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">{cart.reduce((a,c)=>a+c.qty,0)}</span>}</button></div>
                     <button onClick={() => setView('cart')} className={`flex flex-col items-center gap-1 ${view === 'cart' ? 'text-primary' : 'text-gray-400'}`}><span className="text-[10px] font-bold mt-6">السلة</span></button>
                     <button className="flex flex-col items-center gap-1 text-gray-400 opacity-50"><Icon name="Grid" /><span className="text-[10px] font-bold">المزيد</span></button>
                 </div>
@@ -181,7 +215,7 @@
             const Header = () => (
                 <header className="sticky top-0 z-40 glass px-4 py-3 flex justify-between items-center">
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
-                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-black">DZ</div>
+                        <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg shadow-emerald-200">DZ</div>
                         <h1 className="font-black text-xl tracking-tight text-dark">Shop</h1>
                     </div>
                     <div className="hidden md:flex items-center gap-6">
@@ -192,34 +226,39 @@
                 </header>
             );
 
-            if (loading && products.length === 0) return <div className="h-screen flex flex-col items-center justify-center bg-white"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div><p className="text-gray-500 font-bold animate-pulse">جاري تحميل المتجر...</p></div>;
-
             return (
                 <div className="min-h-screen bg-[#f8fafc]">
+                    {toast && <Toast msg={toast} />}
                     <Header />
                     <main className="container mx-auto px-4 py-6 max-w-6xl animate-fade-in">
+                        
                         {view === 'home' && (
                             <>
-                                <div className="relative w-full h-48 bg-gradient-to-r from-emerald-600 to-teal-500 rounded-3xl overflow-hidden shadow-lg mb-6 flex items-center px-6 text-white">
-                                    <div className="z-10"><span className="bg-white/20 backdrop-blur text-xs font-bold px-3 py-1 rounded-full">جديد</span><h2 className="text-3xl font-black mt-2 mb-2">عروض حصرية</h2><p className="text-emerald-100 mb-4 text-sm">تخفيضات تصل إلى 30%</p></div>
+                                <div className="relative w-full h-48 bg-gradient-to-r from-emerald-600 to-teal-500 rounded-3xl overflow-hidden shadow-lg mb-6 flex items-center px-6 text-white animate-float">
+                                    <div className="z-10"><span className="bg-white/20 backdrop-blur text-xs font-bold px-3 py-1 rounded-full border border-white/30">جديد</span><h2 className="text-3xl font-black mt-2 mb-2">عروض حصرية</h2><p className="text-emerald-100 mb-4 text-sm">تخفيضات تصل إلى 30%</p></div>
                                     <div className="absolute -right-4 -bottom-4 opacity-20 rotate-12"><Icon name="ShoppingBag" size={180} /></div>
                                 </div>
+
                                 <div className="sticky top-[65px] z-30 bg-[#f8fafc]/95 backdrop-blur py-2 mb-4 space-y-3">
-                                    <div className="relative"><input type="text" placeholder="ابحث عن منتج..." className="w-full bg-white border-none shadow-sm rounded-2xl py-3 px-10 text-sm focus:ring-2 focus:ring-primary outline-none" value={search} onChange={e => setSearch(e.target.value)} /><div className="absolute right-3 top-3 text-gray-400"><Icon name="Search" size={20} /></div></div>
+                                    <div className="relative"><input type="text" placeholder="ابحث عن منتج..." className="w-full bg-white border-none shadow-sm rounded-2xl py-3 px-10 text-sm focus:ring-2 focus:ring-primary outline-none transition-all" value={search} onChange={e => setSearch(e.target.value)} /><div className="absolute right-3 top-3 text-gray-400"><Icon name="Search" size={20} /></div></div>
                                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">{CATEGORIES.map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold transition-all ${category === cat ? 'bg-dark text-white shadow-lg' : 'bg-white text-gray-500 border border-gray-100'}`}>{cat}</button>))}</div>
                                 </div>
+
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                    {filteredProducts.length === 0 ? <div className="col-span-full text-center py-10 text-gray-400">لا توجد منتجات (تأكد من كتابة id في Google Sheets)</div> :
+                                    {loading ? Array(4).fill(0).map((_, i) => <SkeletonCard key={i} />) : 
+                                     filteredProducts.length === 0 ? <div className="col-span-full text-center py-10 text-gray-400">لا توجد منتجات</div> :
                                      filteredProducts.map(p => (
-                                        <div key={p.id} className="group bg-white rounded-2xl p-3 shadow-sm border border-gray-100 hover:shadow-xl transition-all cursor-pointer" onClick={() => {setSelectedProduct(p); setView('product');}}>
+                                        <div key={p.id} className="group bg-white rounded-2xl p-3 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => {setSelectedProduct(p); setView('product');}}>
                                             <div className="relative bg-gray-100 rounded-xl overflow-hidden aspect-square mb-3">
                                                 <img src={p.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} />
-                                                <button onClick={(e) => {e.stopPropagation(); toggleWishlist(p);}} className="absolute top-2 right-2 bg-white/80 backdrop-blur p-1.5 rounded-full shadow-sm text-gray-400 hover:text-red-500"><Icon name="Heart" size={18} filled={wishlist.some(i => i.id === p.id)} /></button>
-                                                {p.isNew && <span className="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-md">جديد</span>}
+                                                <button onClick={(e) => {e.stopPropagation(); toggleWishlist(p);}} className="absolute top-2 right-2 bg-white/80 backdrop-blur p-1.5 rounded-full shadow-sm text-gray-400 hover:text-red-500 transition"><Icon name="Heart" size={18} filled={wishlist.some(i => i.id === p.id)} /></button>
+                                                {p.isNew && <span className="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm">جديد</span>}
                                             </div>
-                                            <h3 className="font-bold text-dark text-sm md:text-base truncate mb-1">{p.name}</h3>
+                                            {/* هنا يتم استخدام دالة getDir لتحديد اتجاه النص */}
+                                            <h3 className={`font-bold text-dark text-sm md:text-base truncate mb-1 ${getDir(p.name) === 'ltr' ? 'ltr-text' : ''}`}>{p.name}</h3>
+                                            <p className={`text-xs text-gray-400 mb-2 truncate ${getDir(p.shortDesc) === 'ltr' ? 'ltr-text' : ''}`}>{p.shortDesc || p.category}</p>
                                             <div className="flex justify-between items-end">
-                                                <div><p className="text-xs text-gray-400">{p.category}</p><p className="text-primary font-black text-lg">{p.price.toLocaleString()} <span className="text-xs">د.ج</span></p></div>
+                                                <p className="text-primary font-black text-lg">{p.price.toLocaleString()} <span className="text-xs">د.ج</span></p>
                                                 <button onClick={(e) => {e.stopPropagation(); addToCart(p);}} className="bg-dark text-white p-2 rounded-xl shadow-lg active:scale-90 transition-transform"><Icon name="Plus" size={18} /></button>
                                             </div>
                                         </div>
@@ -230,15 +269,30 @@
 
                         {view === 'product' && selectedProduct && (
                             <div className="animate-slide-up pb-20">
-                                <button onClick={() => setView('home')} className="mb-4 flex items-center gap-2 text-gray-500 font-bold"><Icon name="ChevronRight" /> رجوع</button>
+                                <button onClick={() => setView('home')} className="mb-4 flex items-center gap-2 text-gray-500 font-bold hover:text-dark"><Icon name="ChevronRight" /> رجوع</button>
                                 <div className="bg-white rounded-3xl shadow-xl overflow-hidden md:flex">
-                                    <div className="md:w-1/2 bg-gray-50 p-4"><img src={selectedProduct.images[0]} className="w-full h-72 object-contain rounded-2xl mix-blend-multiply" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} /></div>
+                                    <div className="md:w-1/2 bg-gray-50 p-4 relative">
+                                        <img src={selectedProduct.images[0]} className="w-full h-72 object-contain rounded-2xl mix-blend-multiply" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} />
+                                        {selectedProduct.images.length > 1 && (
+                                            <div className="flex gap-2 mt-4 overflow-x-auto no-scrollbar">
+                                                {selectedProduct.images.map((img, idx) => (
+                                                    <img key={idx} src={img} className="w-16 h-16 rounded-lg border border-gray-200 object-cover" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className="p-6 md:p-10 md:w-1/2 flex flex-col">
                                         <div className="flex justify-between items-start mb-4">
-                                            <div><span className="text-primary text-sm font-bold bg-emerald-50 px-3 py-1 rounded-full">{selectedProduct.category}</span><h1 className="text-2xl md:text-3xl font-black text-dark mt-2">{selectedProduct.name}</h1></div>
-                                            <div className="flex items-center gap-1 text-yellow-400 font-bold bg-yellow-50 px-2 py-1 rounded-lg"><span>{selectedProduct.rating || 5}</span> <Icon name="Star" size={16} /></div>
+                                            <div>
+                                                <span className="text-primary text-sm font-bold bg-emerald-50 px-3 py-1 rounded-full">{selectedProduct.category}</span>
+                                                {/* عنوان المنتج مع تحديد الاتجاه */}
+                                                <h1 className={`text-2xl md:text-3xl font-black text-dark mt-2 ${getDir(selectedProduct.name) === 'ltr' ? 'ltr-text' : ''}`}>{selectedProduct.name}</h1>
+                                            </div>
+                                            <div className="flex items-center gap-1 text-yellow-400 font-bold bg-yellow-50 px-2 py-1 rounded-lg"><span>{selectedProduct.rating}</span> <Icon name="Star" size={16} /></div>
                                         </div>
-                                        <p className="text-gray-500 leading-relaxed mb-8 flex-1">{selectedProduct.description || "لا يوجد وصف متاح."}</p>
+                                        {/* الوصف مع تحديد الاتجاه */}
+                                        <p className={`text-gray-500 leading-relaxed mb-8 flex-1 ${getDir(selectedProduct.description) === 'ltr' ? 'ltr-text' : ''}`}>{selectedProduct.description || selectedProduct.shortDesc || "لا يوجد وصف متاح."}</p>
+                                        
                                         <div className="border-t pt-6">
                                             <div className="flex justify-between items-center mb-4"><span className="text-gray-400 text-sm">السعر</span><span className="text-3xl font-black text-primary">{selectedProduct.price.toLocaleString()} د.ج</span></div>
                                             <div className="flex gap-3"><button onClick={() => addToCart(selectedProduct)} className="flex-1 bg-gray-100 text-dark py-4 rounded-xl font-bold hover:bg-gray-200 transition">إضافة للسلة</button><button onClick={() => {addToCart(selectedProduct); setView('checkout')}} className="flex-1 bg-dark text-white py-4 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition">شراء الآن</button></div>
@@ -256,7 +310,10 @@
                                         {cart.map(item => (
                                             <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center">
                                                 <img src={item.images[0]} className="w-20 h-20 rounded-xl object-cover bg-gray-100" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} />
-                                                <div className="flex-1"><h3 className="font-bold text-dark">{item.name}</h3><p className="text-primary font-bold">{item.price.toLocaleString()} د.ج</p></div>
+                                                <div className="flex-1">
+                                                    <h3 className={`font-bold text-dark ${getDir(item.name) === 'ltr' ? 'ltr-text' : ''}`}>{item.name}</h3>
+                                                    <p className="text-primary font-bold">{item.price.toLocaleString()} د.ج</p>
+                                                </div>
                                                 <div className="flex flex-col items-end gap-2"><button onClick={() => removeFromCart(item.id)} className="text-gray-400 hover:text-red-500"><Icon name="Trash" size={18} /></button><div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1"><button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow text-sm font-bold">-</button><span className="text-sm font-bold w-4 text-center">{item.qty}</span><button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow text-sm font-bold">+</button></div></div>
                                             </div>
                                         ))}
@@ -278,7 +335,7 @@
                                     {wishlist.length === 0 ? <p className="col-span-full text-center text-gray-400 py-10">لا توجد منتجات مفضلة</p> : wishlist.map(p => (
                                         <div key={p.id} className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 relative">
                                             <img src={p.images[0]} className="w-full aspect-square object-cover rounded-xl mb-2 bg-gray-100" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} />
-                                            <h3 className="font-bold text-sm truncate">{p.name}</h3>
+                                            <h3 className={`font-bold text-sm truncate ${getDir(p.name) === 'ltr' ? 'ltr-text' : ''}`}>{p.name}</h3>
                                             <p className="text-primary font-bold text-sm">{p.price.toLocaleString()} د.ج</p>
                                             <button onClick={() => toggleWishlist(p)} className="absolute top-2 right-2 bg-white p-1.5 rounded-full text-red-500 shadow-sm"><Icon name="Trash" size={16} /></button>
                                             <button onClick={() => addToCart(p)} className="w-full mt-2 bg-gray-100 text-dark text-xs font-bold py-2 rounded-lg hover:bg-dark hover:text-white transition">نقل للسلة</button>
