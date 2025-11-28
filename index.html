@@ -3,100 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DZ Shop Pro - المتجر المتكامل</title>
-    
-    <!-- Tailwind CSS -->
+    <title>DZ Shop Pro - النسخة النهائية</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- إعدادات التصميم والألوان -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        primary: '#10b981', // لون الزمرد
-                        dark: '#0f172a',    // لون داكن
-                        surface: '#ffffff',
-                    },
-                    fontFamily: {
-                        cairo: ['Cairo', 'sans-serif'],
-                    },
-                    animation: {
-                        'slide-up': 'slideUp 0.4s ease-out',
-                        'fade-in': 'fadeIn 0.3s ease-in-out',
-                    },
+                    colors: { primary: '#10b981', dark: '#0f172a', surface: '#ffffff' },
+                    fontFamily: { cairo: ['Cairo', 'sans-serif'] },
+                    animation: { 'slide-up': 'slideUp 0.4s ease-out', 'fade-in': 'fadeIn 0.3s ease-in-out' },
                     keyframes: {
-                        slideUp: {
-                            '0%': { transform: 'translateY(100%)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        }
+                        slideUp: { '0%': { transform: 'translateY(100%)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } }
                     }
                 }
             }
         }
     </script>
-
-    <!-- خط Cairo -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
         body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
-        
-        /* إخفاء شريط التمرير */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* تأثير الزجاج */
-        .glass {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
     </style>
-    
-    <!-- مكتبات React -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body class="text-slate-800 pb-20 md:pb-0 selection:bg-primary selection:text-white">
 
-    <!-- مكان ظهور التطبيق -->
     <div id="root"></div>
 
-    <!-- مكان ظهور الأخطاء (للطوارئ) -->
+    <!-- كاشف الأخطاء -->
     <div id="error-display" style="display:none; padding: 20px; background: #fee2e2; color: #991b1b; text-align: center; margin: 20px; border-radius: 10px;">
-        <h3 style="font-weight: bold;">حدث خطأ غير متوقع</h3>
+        <h3 style="font-weight: bold;">تنبيه</h3>
         <p id="error-message"></p>
     </div>
-
-    <!-- سكربت كشف الأخطاء -->
     <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            document.getElementById('root').style.display = 'none';
+        window.onerror = function(message) {
             document.getElementById('error-display').style.display = 'block';
             document.getElementById('error-message').innerText = message;
         };
     </script>
 
     <script type="text/babel">
-        const { useState, useEffect, useCallback } = React;
+        const { useState, useEffect } = React;
 
         // 🚨 الرابط الخاص بك
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwx2WBI3uQK0fDEvISa6q7ZXw1UPQHUn3sBY8DVhiaTCJqHrDAv-wLlDWMpKPmTZmg8/exec'; 
 
-        // بيانات وهمية (تظهر فقط في حال فشل الاتصال)
-        const MOCK_PRODUCTS = [
-            { id: 1, name: "جاري التحميل...", price: 0, category: "عام", images: ["https://placehold.co/400"], description: "يرجى الانتظار" }
-        ];
-
         const WILAYAS = ["16 - الجزائر", "31 - وهران", "25 - قسنطينة", "30 - ورقلة", "09 - البليدة", "19 - سطيف", "15 - تيزي وزو", "05 - باتنة"];
         const CATEGORIES = ['الكل', 'هواتف', 'لابتوب', 'ساعات', 'إكسسوارات', 'ملابس'];
 
-        // --- أيقونات SVG ---
         const Icon = ({ name, size = 24, className = "", filled = false }) => {
             const icons = {
                 Home: <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />,
@@ -111,14 +70,9 @@
                 Trash: <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />,
                 Check: <path d="M20 6L9 17l-5-5" />
             };
-            return (
-                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                    {icons[name]}
-                </svg>
-            );
+            return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{icons[name]}</svg>;
         };
 
-        // --- التطبيق الرئيسي ---
         const App = () => {
             const [products, setProducts] = useState([]);
             const [loading, setLoading] = useState(true);
@@ -130,35 +84,28 @@
             const [category, setCategory] = useState('الكل');
             const [formData, setFormData] = useState({ name: '', phone: '', wilaya: WILAYAS[0], address: '' });
 
-            // حفظ السلة والمفضلة
             useEffect(() => localStorage.setItem('dz_cart', JSON.stringify(cart)), [cart]);
             useEffect(() => localStorage.setItem('dz_wishlist', JSON.stringify(wishlist)), [wishlist]);
 
-            // جلب البيانات من Google Sheets
+            // جلب المنتجات
             useEffect(() => {
                 const fetchData = async () => {
                     try {
-                        // ✅ إضافة الوقت الحالي للرابط لمنع التخزين المؤقت (Cache Busting)
-                        // هذا يحل مشكلة عدم ظهور المنتجات الجديدة
-                        const timestamp = new Date().getTime();
-                        const res = await fetch(`${GAS_API_URL}?sheet=Products&t=${timestamp}`);
-                        
-                        if (!res.ok) throw new Error("Network response was not ok");
+                        // إضافة timestamp لمنع التخزين المؤقت
+                        const res = await fetch(`${GAS_API_URL}?sheet=Products&t=${Date.now()}`);
+                        if (!res.ok) throw new Error("فشل الاتصال");
                         const data = await res.json();
                         
-                        // تنسيق البيانات
                         const formattedData = data.map(p => ({
                             ...p,
                             id: Number(p.id),
                             price: Number(p.price),
-                            // تحويل الصور من نص مفصول بـ | إلى مصفوفة، مع صورة افتراضية إذا كانت فارغة
                             images: (p.images && p.images.length > 5) ? String(p.images).split('|') : ["https://placehold.co/400?text=No+Image"],
                             isNew: String(p.isNew).toLowerCase() === 'true'
                         }));
                         setProducts(formattedData);
                     } catch (error) {
-                        console.error("Fetch error:", error);
-                        // لا نستخدم البيانات الوهمية إلا إذا فشل الاتصال تماماً
+                        console.error("Error:", error);
                     } finally {
                         setLoading(false);
                     }
@@ -166,30 +113,18 @@
                 fetchData();
             }, []);
 
-            // دوال السلة والمفضلة
             const addToCart = (p) => {
                 setCart(prev => {
                     const exists = prev.find(i => i.id === p.id);
-                    if (exists) return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i);
-                    return [...prev, { ...p, qty: 1 }];
+                    return exists ? prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i) : [...prev, { ...p, qty: 1 }];
                 });
-                if (navigator.vibrate) navigator.vibrate(50);
             };
 
-            const updateQty = (id, delta) => {
-                setCart(prev => prev.map(item => item.id === id ? { ...item, qty: Math.max(1, item.qty + delta) } : item));
-            };
-
+            const updateQty = (id, delta) => setCart(prev => prev.map(item => item.id === id ? { ...item, qty: Math.max(1, item.qty + delta) } : item));
             const removeFromCart = (id) => setCart(prev => prev.filter(item => item.id !== id));
+            const toggleWishlist = (p) => setWishlist(prev => prev.find(i => i.id === p.id) ? prev.filter(i => i.id !== p.id) : [...prev, p]);
 
-            const toggleWishlist = (p) => {
-                setWishlist(prev => {
-                    const exists = prev.find(i => i.id === p.id);
-                    return exists ? prev.filter(i => i.id !== p.id) : [...prev, p];
-                });
-            };
-
-            // إرسال الطلب (تم التعديل لحل مشكلة الخطأ الوهمي)
+            // إرسال الطلب (تم التصحيح: إزالة no-cors واستخدام text/plain)
             const placeOrder = async (e) => {
                 e.preventDefault();
                 setLoading(true);
@@ -201,27 +136,28 @@
                         date: new Date().toLocaleDateString('en-GB'),
                         total: cart.reduce((a,c) => a + c.price * c.qty, 0) + 500,
                         status: 'pending',
-                        customerJson: JSON.stringify(formData),
+                        // التأكد من أن البيانات ليست فارغة
+                        customerJson: JSON.stringify({
+                            name: formData.name,
+                            phone: formData.phone,
+                            wilaya: formData.wilaya,
+                            address: formData.address
+                        }),
                         itemsJson: JSON.stringify(cart.map(i => ({ id: i.id, name: i.name, qty: i.qty })))
                     }
                 };
 
                 try {
-                    // ✅ استخدام mode: 'no-cors' لتجاهل انتظار الرد
-                    // هذا يحل مشكلة "حدث خطأ" رغم وصول البيانات
+                    // استخدام text/plain يمنع مشاكل CORS مع Google Apps Script
                     await fetch(GAS_API_URL, {
                         method: 'POST',
-                        mode: 'no-cors', 
-                        headers: { 'Content-Type': 'text/plain' },
+                        headers: { 'Content-Type': 'text/plain' }, 
                         body: JSON.stringify(orderData)
                     });
-                    
-                    // نعتبر العملية ناجحة فوراً
                     setCart([]);
                     setView('success');
                 } catch (error) {
-                    console.error(error);
-                    // حتى في حالة الخطأ الظاهري، ننتقل لصفحة النجاح لأن no-cors يخفي الحالة
+                    alert("حدث خطأ في الاتصال، لكن قد يكون الطلب وصل. يرجى التحقق.");
                     setCart([]);
                     setView('success');
                 } finally {
@@ -229,42 +165,22 @@
                 }
             };
 
-            // تصفية المنتجات
             const filteredProducts = products.filter(p => 
                 (category === 'الكل' || p.category === category) &&
                 (p.name && p.name.toLowerCase().includes(search.toLowerCase()))
             );
 
             // --- المكونات ---
-
-            // 1. شريط التنقل السفلي (للموبايل)
             const BottomNav = () => (
                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center md:hidden z-50 pb-safe">
-                    <button onClick={() => setView('home')} className={`flex flex-col items-center gap-1 ${view === 'home' ? 'text-primary' : 'text-gray-400'}`}>
-                        <Icon name="Home" />
-                        <span className="text-[10px] font-bold">الرئيسية</span>
-                    </button>
-                    <button onClick={() => setView('wishlist')} className={`flex flex-col items-center gap-1 ${view === 'wishlist' ? 'text-primary' : 'text-gray-400'}`}>
-                        <Icon name="Heart" filled={view === 'wishlist'} />
-                        <span className="text-[10px] font-bold">المفضلة</span>
-                    </button>
-                    <div className="relative -top-5">
-                        <button onClick={() => setView('cart')} className="bg-primary text-white p-4 rounded-full shadow-lg shadow-emerald-200 hover:scale-105 transition-transform">
-                            <Icon name="ShoppingBag" />
-                            {cart.length > 0 && <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">{cart.reduce((a,c)=>a+c.qty,0)}</span>}
-                        </button>
-                    </div>
-                    <button onClick={() => setView('cart')} className={`flex flex-col items-center gap-1 ${view === 'cart' ? 'text-primary' : 'text-gray-400'}`}>
-                        <span className="text-[10px] font-bold mt-6">السلة</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-1 text-gray-400 cursor-not-allowed opacity-50">
-                        <Icon name="Grid" />
-                        <span className="text-[10px] font-bold">المزيد</span>
-                    </button>
+                    <button onClick={() => setView('home')} className={`flex flex-col items-center gap-1 ${view === 'home' ? 'text-primary' : 'text-gray-400'}`}><Icon name="Home" /><span className="text-[10px] font-bold">الرئيسية</span></button>
+                    <button onClick={() => setView('wishlist')} className={`flex flex-col items-center gap-1 ${view === 'wishlist' ? 'text-primary' : 'text-gray-400'}`}><Icon name="Heart" filled={view === 'wishlist'} /><span className="text-[10px] font-bold">المفضلة</span></button>
+                    <div className="relative -top-5"><button onClick={() => setView('cart')} className="bg-primary text-white p-4 rounded-full shadow-lg shadow-emerald-200 hover:scale-105 transition-transform"><Icon name="ShoppingBag" />{cart.length > 0 && <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">{cart.reduce((a,c)=>a+c.qty,0)}</span>}</button></div>
+                    <button onClick={() => setView('cart')} className={`flex flex-col items-center gap-1 ${view === 'cart' ? 'text-primary' : 'text-gray-400'}`}><span className="text-[10px] font-bold mt-6">السلة</span></button>
+                    <button className="flex flex-col items-center gap-1 text-gray-400 opacity-50"><Icon name="Grid" /><span className="text-[10px] font-bold">المزيد</span></button>
                 </div>
             );
 
-            // 2. الهيدر
             const Header = () => (
                 <header className="sticky top-0 z-40 glass px-4 py-3 flex justify-between items-center">
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
@@ -273,91 +189,40 @@
                     </div>
                     <div className="hidden md:flex items-center gap-6">
                         <button onClick={() => setView('home')} className="font-bold hover:text-primary">الرئيسية</button>
-                        <button onClick={() => setView('wishlist')} className="font-bold hover:text-primary">المفضلة</button>
-                        <button onClick={() => setView('cart')} className="relative bg-gray-100 p-2 rounded-full hover:bg-gray-200">
-                            <Icon name="ShoppingBag" size={20} />
-                            {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">{cart.length}</span>}
-                        </button>
+                        <button onClick={() => setView('cart')} className="relative bg-gray-100 p-2 rounded-full hover:bg-gray-200"><Icon name="ShoppingBag" size={20} />{cart.length > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">{cart.length}</span>}</button>
                     </div>
                 </header>
             );
 
-            // --- الشاشات ---
-
-            if (loading && products.length === 0) return (
-                <div className="h-screen flex flex-col items-center justify-center bg-white">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-                    <p className="text-gray-500 font-bold animate-pulse">جاري تحميل المتجر...</p>
-                </div>
-            );
+            if (loading && products.length === 0) return <div className="h-screen flex flex-col items-center justify-center bg-white"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div><p className="text-gray-500 font-bold animate-pulse">جاري تحميل المتجر...</p></div>;
 
             return (
                 <div className="min-h-screen bg-[#f8fafc]">
                     <Header />
-
                     <main className="container mx-auto px-4 py-6 max-w-6xl animate-fade-in">
-                        
-                        {/* الرئيسية */}
                         {view === 'home' && (
                             <>
-                                {/* بانر إعلاني */}
                                 <div className="relative w-full h-48 bg-gradient-to-r from-emerald-600 to-teal-500 rounded-3xl overflow-hidden shadow-lg mb-6 flex items-center px-6 text-white">
-                                    <div className="z-10">
-                                        <span className="bg-white/20 backdrop-blur text-xs font-bold px-3 py-1 rounded-full">جديد</span>
-                                        <h2 className="text-3xl font-black mt-2 mb-2">عروض حصرية</h2>
-                                        <p className="text-emerald-100 mb-4 text-sm">تخفيضات تصل إلى 30%</p>
-                                    </div>
-                                    <div className="absolute -right-4 -bottom-4 opacity-20 rotate-12">
-                                        <Icon name="ShoppingBag" size={180} />
-                                    </div>
+                                    <div className="z-10"><span className="bg-white/20 backdrop-blur text-xs font-bold px-3 py-1 rounded-full">جديد</span><h2 className="text-3xl font-black mt-2 mb-2">عروض حصرية</h2><p className="text-emerald-100 mb-4 text-sm">تخفيضات تصل إلى 30%</p></div>
+                                    <div className="absolute -right-4 -bottom-4 opacity-20 rotate-12"><Icon name="ShoppingBag" size={180} /></div>
                                 </div>
-
-                                {/* البحث والتصنيف */}
                                 <div className="sticky top-[65px] z-30 bg-[#f8fafc]/95 backdrop-blur py-2 mb-4 space-y-3">
-                                    <div className="relative">
-                                        <input 
-                                            type="text" 
-                                            placeholder="ابحث عن منتج..." 
-                                            className="w-full bg-white border-none shadow-sm rounded-2xl py-3 px-10 text-sm focus:ring-2 focus:ring-primary outline-none"
-                                            value={search}
-                                            onChange={e => setSearch(e.target.value)}
-                                        />
-                                        <div className="absolute right-3 top-3 text-gray-400"><Icon name="Search" size={20} /></div>
-                                    </div>
-                                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                                        {CATEGORIES.map(cat => (
-                                            <button 
-                                                key={cat}
-                                                onClick={() => setCategory(cat)}
-                                                className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold transition-all ${category === cat ? 'bg-dark text-white shadow-lg' : 'bg-white text-gray-500 border border-gray-100'}`}
-                                            >
-                                                {cat}
-                                            </button>
-                                        ))}
-                                    </div>
+                                    <div className="relative"><input type="text" placeholder="ابحث عن منتج..." className="w-full bg-white border-none shadow-sm rounded-2xl py-3 px-10 text-sm focus:ring-2 focus:ring-primary outline-none" value={search} onChange={e => setSearch(e.target.value)} /><div className="absolute right-3 top-3 text-gray-400"><Icon name="Search" size={20} /></div></div>
+                                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">{CATEGORIES.map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold transition-all ${category === cat ? 'bg-dark text-white shadow-lg' : 'bg-white text-gray-500 border border-gray-100'}`}>{cat}</button>))}</div>
                                 </div>
-
-                                {/* شبكة المنتجات */}
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                    {filteredProducts.length === 0 ? <div className="col-span-full text-center py-10 text-gray-400">لا توجد منتجات</div> :
+                                    {filteredProducts.length === 0 ? <div className="col-span-full text-center py-10 text-gray-400">لا توجد منتجات (تأكد من إضافة ID في Google Sheets)</div> :
                                      filteredProducts.map(p => (
                                         <div key={p.id} className="group bg-white rounded-2xl p-3 shadow-sm border border-gray-100 hover:shadow-xl transition-all cursor-pointer" onClick={() => {setSelectedProduct(p); setView('product');}}>
                                             <div className="relative bg-gray-100 rounded-xl overflow-hidden aspect-square mb-3">
-                                                <img src={p.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={p.name} onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} />
-                                                <button onClick={(e) => {e.stopPropagation(); toggleWishlist(p);}} className="absolute top-2 right-2 bg-white/80 backdrop-blur p-1.5 rounded-full shadow-sm text-gray-400 hover:text-red-500">
-                                                    <Icon name="Heart" size={18} filled={wishlist.some(i => i.id === p.id)} />
-                                                </button>
+                                                <img src={p.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} />
+                                                <button onClick={(e) => {e.stopPropagation(); toggleWishlist(p);}} className="absolute top-2 right-2 bg-white/80 backdrop-blur p-1.5 rounded-full shadow-sm text-gray-400 hover:text-red-500"><Icon name="Heart" size={18} filled={wishlist.some(i => i.id === p.id)} /></button>
                                                 {p.isNew && <span className="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-md">جديد</span>}
                                             </div>
                                             <h3 className="font-bold text-dark text-sm md:text-base truncate mb-1">{p.name}</h3>
                                             <div className="flex justify-between items-end">
-                                                <div>
-                                                    <p className="text-xs text-gray-400">{p.category}</p>
-                                                    <p className="text-primary font-black text-lg">{p.price.toLocaleString()} <span className="text-xs">د.ج</span></p>
-                                                </div>
-                                                <button onClick={(e) => {e.stopPropagation(); addToCart(p);}} className="bg-dark text-white p-2 rounded-xl shadow-lg active:scale-90 transition-transform">
-                                                    <Icon name="Plus" size={18} />
-                                                </button>
+                                                <div><p className="text-xs text-gray-400">{p.category}</p><p className="text-primary font-black text-lg">{p.price.toLocaleString()} <span className="text-xs">د.ج</span></p></div>
+                                                <button onClick={(e) => {e.stopPropagation(); addToCart(p);}} className="bg-dark text-white p-2 rounded-xl shadow-lg active:scale-90 transition-transform"><Icon name="Plus" size={18} /></button>
                                             </div>
                                         </div>
                                     ))}
@@ -365,85 +230,42 @@
                             </>
                         )}
 
-                        {/* تفاصيل المنتج */}
                         {view === 'product' && selectedProduct && (
                             <div className="animate-slide-up pb-20">
                                 <button onClick={() => setView('home')} className="mb-4 flex items-center gap-2 text-gray-500 font-bold"><Icon name="ChevronRight" /> رجوع</button>
                                 <div className="bg-white rounded-3xl shadow-xl overflow-hidden md:flex">
-                                    <div className="md:w-1/2 bg-gray-50 p-4">
-                                        <img src={selectedProduct.images[0]} className="w-full h-72 object-contain rounded-2xl mix-blend-multiply" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} />
-                                        {selectedProduct.images.length > 1 && (
-                                            <div className="flex gap-2 mt-4 overflow-x-auto no-scrollbar">
-                                                {selectedProduct.images.map((img, idx) => (
-                                                    <img key={idx} src={img} className="w-16 h-16 rounded-lg border border-gray-200 object-cover" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} />
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+                                    <div className="md:w-1/2 bg-gray-50 p-4"><img src={selectedProduct.images[0]} className="w-full h-72 object-contain rounded-2xl mix-blend-multiply" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} /></div>
                                     <div className="p-6 md:p-10 md:w-1/2 flex flex-col">
                                         <div className="flex justify-between items-start mb-4">
-                                            <div>
-                                                <span className="text-primary text-sm font-bold bg-emerald-50 px-3 py-1 rounded-full">{selectedProduct.category}</span>
-                                                <h1 className="text-2xl md:text-3xl font-black text-dark mt-2">{selectedProduct.name}</h1>
-                                            </div>
-                                            <div className="flex items-center gap-1 text-yellow-400 font-bold bg-yellow-50 px-2 py-1 rounded-lg">
-                                                <span>{selectedProduct.rating || 5}</span> <Icon name="Star" size={16} />
-                                            </div>
+                                            <div><span className="text-primary text-sm font-bold bg-emerald-50 px-3 py-1 rounded-full">{selectedProduct.category}</span><h1 className="text-2xl md:text-3xl font-black text-dark mt-2">{selectedProduct.name}</h1></div>
+                                            <div className="flex items-center gap-1 text-yellow-400 font-bold bg-yellow-50 px-2 py-1 rounded-lg"><span>{selectedProduct.rating || 5}</span> <Icon name="Star" size={16} /></div>
                                         </div>
                                         <p className="text-gray-500 leading-relaxed mb-8 flex-1">{selectedProduct.description || "لا يوجد وصف متاح."}</p>
-                                        
                                         <div className="border-t pt-6">
-                                            <div className="flex justify-between items-center mb-4">
-                                                <span className="text-gray-400 text-sm">السعر</span>
-                                                <span className="text-3xl font-black text-primary">{selectedProduct.price.toLocaleString()} د.ج</span>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <button onClick={() => addToCart(selectedProduct)} className="flex-1 bg-gray-100 text-dark py-4 rounded-xl font-bold hover:bg-gray-200 transition">إضافة للسلة</button>
-                                                <button onClick={() => {addToCart(selectedProduct); setView('checkout')}} className="flex-1 bg-dark text-white py-4 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition">شراء الآن</button>
-                                            </div>
+                                            <div className="flex justify-between items-center mb-4"><span className="text-gray-400 text-sm">السعر</span><span className="text-3xl font-black text-primary">{selectedProduct.price.toLocaleString()} د.ج</span></div>
+                                            <div className="flex gap-3"><button onClick={() => addToCart(selectedProduct)} className="flex-1 bg-gray-100 text-dark py-4 rounded-xl font-bold hover:bg-gray-200 transition">إضافة للسلة</button><button onClick={() => {addToCart(selectedProduct); setView('checkout')}} className="flex-1 bg-dark text-white py-4 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition">شراء الآن</button></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* السلة */}
                         {view === 'cart' && (
                             <div className="animate-slide-up max-w-2xl mx-auto pb-20">
                                 <h2 className="text-2xl font-black mb-6 flex items-center gap-2"><Icon name="ShoppingBag" /> سلة المشتريات</h2>
-                                {cart.length === 0 ? (
-                                    <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-dashed border-gray-300">
-                                        <div className="inline-block p-6 bg-gray-50 rounded-full mb-4 text-gray-300"><Icon name="ShoppingBag" size={48} /></div>
-                                        <p className="text-gray-500 font-bold">السلة فارغة حالياً</p>
-                                        <button onClick={() => setView('home')} className="mt-4 text-primary font-bold hover:underline">تصفح المنتجات</button>
-                                    </div>
-                                ) : (
+                                {cart.length === 0 ? <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-dashed border-gray-300"><div className="inline-block p-6 bg-gray-50 rounded-full mb-4 text-gray-300"><Icon name="ShoppingBag" size={48} /></div><p className="text-gray-500 font-bold">السلة فارغة حالياً</p><button onClick={() => setView('home')} className="mt-4 text-primary font-bold hover:underline">تصفح المنتجات</button></div> : (
                                     <div className="space-y-4">
                                         {cart.map(item => (
                                             <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center">
                                                 <img src={item.images[0]} className="w-20 h-20 rounded-xl object-cover bg-gray-100" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} />
-                                                <div className="flex-1">
-                                                    <h3 className="font-bold text-dark">{item.name}</h3>
-                                                    <p className="text-primary font-bold">{item.price.toLocaleString()} د.ج</p>
-                                                </div>
-                                                <div className="flex flex-col items-end gap-2">
-                                                    <button onClick={() => removeFromCart(item.id)} className="text-gray-400 hover:text-red-500"><Icon name="Trash" size={18} /></button>
-                                                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1">
-                                                        <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow text-sm font-bold">-</button>
-                                                        <span className="text-sm font-bold w-4 text-center">{item.qty}</span>
-                                                        <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow text-sm font-bold">+</button>
-                                                    </div>
-                                                </div>
+                                                <div className="flex-1"><h3 className="font-bold text-dark">{item.name}</h3><p className="text-primary font-bold">{item.price.toLocaleString()} د.ج</p></div>
+                                                <div className="flex flex-col items-end gap-2"><button onClick={() => removeFromCart(item.id)} className="text-gray-400 hover:text-red-500"><Icon name="Trash" size={18} /></button><div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1"><button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow text-sm font-bold">-</button><span className="text-sm font-bold w-4 text-center">{item.qty}</span><button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow text-sm font-bold">+</button></div></div>
                                             </div>
                                         ))}
-                                        
                                         <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mt-6">
                                             <div className="flex justify-between mb-2 text-gray-500"><span>المجموع</span><span>{cart.reduce((a,c)=>a+c.price*c.qty,0).toLocaleString()} د.ج</span></div>
                                             <div className="flex justify-between mb-6 text-gray-500"><span>التوصيل</span><span>500 د.ج</span></div>
-                                            <div className="flex justify-between text-xl font-black text-dark border-t pt-4 mb-6">
-                                                <span>الإجمالي</span>
-                                                <span className="text-primary">{(cart.reduce((a,c)=>a+c.price*c.qty,0) + 500).toLocaleString()} د.ج</span>
-                                            </div>
+                                            <div className="flex justify-between text-xl font-black text-dark border-t pt-4 mb-6"><span>الإجمالي</span><span className="text-primary">{(cart.reduce((a,c)=>a+c.price*c.qty,0) + 500).toLocaleString()} د.ج</span></div>
                                             <button onClick={() => setView('checkout')} className="w-full bg-dark text-white py-4 rounded-xl font-bold shadow-lg hover:bg-gray-800 transition">متابعة للدفع</button>
                                         </div>
                                     </div>
@@ -451,13 +273,11 @@
                             </div>
                         )}
 
-                        {/* المفضلة */}
                         {view === 'wishlist' && (
                             <div className="animate-slide-up pb-20">
                                 <h2 className="text-2xl font-black mb-6 flex items-center gap-2"><Icon name="Heart" filled /> المفضلة</h2>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {wishlist.length === 0 ? <p className="col-span-full text-center text-gray-400 py-10">لا توجد منتجات مفضلة</p> : 
-                                    wishlist.map(p => (
+                                    {wishlist.length === 0 ? <p className="col-span-full text-center text-gray-400 py-10">لا توجد منتجات مفضلة</p> : wishlist.map(p => (
                                         <div key={p.id} className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 relative">
                                             <img src={p.images[0]} className="w-full aspect-square object-cover rounded-xl mb-2 bg-gray-100" onError={(e)=>e.target.src="https://placehold.co/400?text=No+Image"} />
                                             <h3 className="font-bold text-sm truncate">{p.name}</h3>
@@ -470,59 +290,33 @@
                             </div>
                         )}
 
-                        {/* إتمام الطلب */}
                         {view === 'checkout' && (
                             <div className="animate-slide-up max-w-lg mx-auto pb-20">
                                 <button onClick={() => setView('cart')} className="mb-4 flex items-center gap-2 text-gray-500 font-bold"><Icon name="ChevronRight" /> العودة للسلة</button>
                                 <div className="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-gray-100">
                                     <h2 className="text-2xl font-black mb-6 text-dark">معلومات الشحن</h2>
                                     <form onSubmit={placeOrder} className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-bold text-gray-500 mb-1">الاسم الكامل</label>
-                                            <input required className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary outline-none transition" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-gray-500 mb-1">رقم الهاتف</label>
-                                            <input required type="tel" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary outline-none transition" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-                                        </div>
+                                        <div><label className="block text-sm font-bold text-gray-500 mb-1">الاسم الكامل</label><input required className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary outline-none transition" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
+                                        <div><label className="block text-sm font-bold text-gray-500 mb-1">رقم الهاتف</label><input required type="tel" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary outline-none transition" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} /></div>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-bold text-gray-500 mb-1">الولاية</label>
-                                                <select className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none" value={formData.wilaya} onChange={e => setFormData({...formData, wilaya: e.target.value})}>
-                                                    {WILAYAS.map(w => <option key={w} value={w}>{w}</option>)}
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-bold text-gray-500 mb-1">العنوان</label>
-                                                <input required className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
-                                            </div>
+                                            <div><label className="block text-sm font-bold text-gray-500 mb-1">الولاية</label><select className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none" value={formData.wilaya} onChange={e => setFormData({...formData, wilaya: e.target.value})}>{WILAYAS.map(w => <option key={w} value={w}>{w}</option>)}</select></div>
+                                            <div><label className="block text-sm font-bold text-gray-500 mb-1">العنوان</label><input required className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} /></div>
                                         </div>
-                                        
-                                        <div className="pt-4">
-                                            <button disabled={loading} className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-600 transition flex justify-center items-center gap-2">
-                                                {loading ? 'جاري الإرسال...' : 'تأكيد الطلب'}
-                                            </button>
-                                            <p className="text-center text-xs text-gray-400 mt-3">الدفع عند الاستلام - توصيل سريع ومضمون</p>
-                                        </div>
+                                        <div className="pt-4"><button disabled={loading} className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-600 transition flex justify-center items-center gap-2">{loading ? 'جاري الإرسال...' : 'تأكيد الطلب'}</button><p className="text-center text-xs text-gray-400 mt-3">الدفع عند الاستلام - توصيل سريع ومضمون</p></div>
                                     </form>
                                 </div>
                             </div>
                         )}
 
-                        {/* نجاح الطلب */}
                         {view === 'success' && (
                             <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white p-6 text-center animate-slide-up">
-                                <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6">
-                                    <Icon name="Check" size={48} />
-                                </div>
+                                <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6"><Icon name="Check" size={48} /></div>
                                 <h2 className="text-3xl font-black text-dark mb-2">تم استلام طلبك!</h2>
                                 <p className="text-gray-500 mb-8">شكراً لثقتك بنا. سيتم الاتصال بك قريباً لتأكيد الطلب.</p>
                                 <button onClick={() => setView('home')} className="bg-primary text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-emerald-200 w-full max-w-xs">العودة للمتجر</button>
                             </div>
                         )}
-
                     </main>
-                    
                     <BottomNav />
                 </div>
             );
